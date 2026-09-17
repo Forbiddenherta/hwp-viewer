@@ -1,0 +1,53 @@
+:root {
+  color: #1f2937;
+  background: #f4f6f8;
+  font-family: Inter, Pretendard, "Noto Sans KR", system-ui, sans-serif;
+  font-synthesis: none;
+}
+
+* { box-sizing: border-box; }
+
+html, body, #app { min-width: 320px; min-height: 100%; margin: 0; }
+
+body { min-height: 100vh; }
+
+.shell { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; height: 100vh; }
+
+.app-header {
+  align-items: center;
+  background: #fff;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: space-between;
+  min-height: 56px;
+  padding: 0 24px;
+}
+
+.brand { align-items: center; color: #172554; display: inline-flex; font-size: 16px; font-weight: 750; gap: 9px; text-decoration: none; }
+.brand-mark { align-items: center; background: #2563eb; border-radius: 8px; color: white; display: inline-flex; font-size: 18px; font-weight: 800; height: 29px; justify-content: center; width: 29px; }
+.app-actions { align-items: center; display: flex; gap: 8px; }
+.button { border: 1px solid transparent; border-radius: 7px; cursor: pointer; font: inherit; font-size: 13px; font-weight: 650; padding: 8px 11px; }
+.button:disabled { cursor: wait; opacity: .55; }
+.button-primary { background: #2563eb; color: #fff; }
+.button-primary:hover:not(:disabled) { background: #1d4ed8; }
+.button-secondary { background: #fff; border-color: #cbd5e1; color: #334155; }
+.button-secondary:hover { background: #f8fafc; }
+
+.workspace { min-height: 0; padding: 12px; }
+.editor-host { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; height: 100%; overflow: hidden; position: relative; }
+.editor-host iframe { border: 0; height: 100%; width: 100%; }
+
+.loading, .error-state { align-items: center; color: #475569; display: flex; inset: 0; justify-content: center; padding: 24px; position: absolute; text-align: center; }
+.error-state { flex-direction: column; gap: 8px; }
+.error-state h1 { color: #1e293b; font-size: 18px; margin: 0; }
+.error-state p { margin: 0; }
+.error-state button { background: #2563eb; border: 0; border-radius: 6px; color: white; cursor: pointer; font: inherit; margin-top: 8px; padding: 8px 12px; }
+.status-message { color: #64748b; font-size: 12px; margin: 0; min-height: 31px; padding: 8px 24px; }
+.status-message[data-state='error'] { color: #b91c1c; }
+
+@media (max-width: 560px) {
+  .app-header { padding: 0 14px; }
+  .button { padding: 7px 9px; }
+  .workspace { padding: 0; }
+  .editor-host { border: 0; border-radius: 0; }
+}
