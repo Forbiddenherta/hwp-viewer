@@ -32,6 +32,8 @@ body { min-height: 100vh; }
 .button-primary:hover:not(:disabled) { background: #1d4ed8; }
 .button-secondary { background: #fff; border-color: #cbd5e1; color: #334155; }
 .button-secondary:hover { background: #f8fafc; }
+.save-format-label { color: #475569; font-size: 12px; }
+.save-format { background: #fff; border: 1px solid #cbd5e1; border-radius: 7px; color: #334155; font: inherit; font-size: 13px; padding: 7px; }
 
 .workspace { min-height: 0; padding: 12px; }
 .editor-host { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; height: 100%; overflow: hidden; position: relative; }
@@ -48,6 +50,7 @@ body { min-height: 100vh; }
 @media (max-width: 560px) {
   .app-header { padding: 0 14px; }
   .button { padding: 7px 9px; }
+  .save-format-label { display: none; }
   .workspace { padding: 0; }
   .editor-host { border: 0; border-radius: 0; }
 }

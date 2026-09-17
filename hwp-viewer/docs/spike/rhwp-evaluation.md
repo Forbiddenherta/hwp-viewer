@@ -35,6 +35,13 @@
 - 앱의 파일 선택 UI는 `loadFile(ArrayBuffer, filename)`을, 저장 버튼은 `exportHwpx()`를 호출한다.
 - 실제 문서 파일이 아직 제공되지 않아 왕복 테스트는 보류한다.
 
+## 후속 구현
+
+- 저장 시 불러온 파일의 기본 이름을 유지하며 HWP/HWPX 중 출력 형식을 선택할 수 있게 했다.
+- `notifySaved()`를 내려받기 시작 후 호출해 Studio의 저장 상태와 복구 draft 상태를 맞춘다.
+- 파일명·확장자·MIME type 자동 테스트 3개를 추가했다.
+- 실제 표·이미지 문서의 열기 → 수정 → 저장 → 재열기 테스트는 샘플 파일이 필요하다.
+
 ## 출처
 
 - https://github.com/edwardkim/rhwp/blob/main/README_EN.md

@@ -1,4 +1,11 @@
-import { createEditor } from '@rhwp/editor'
+// iframe 에디터를 Vite의 개발용 의존성 사전 번들링 없이 원본 ESM으로 불러온다.
+import { createEditor } from '../node_modules/@rhwp/editor/index.js'
+import {
+  detectDocumentFormat,
+  downloadFileName,
+  exportMimeType,
+  type DocumentFormat,
+} from './document-file'
 import './style.css'
 
 const app = document.querySelector<HTMLDivElement>('#app')
@@ -17,7 +24,12 @@ app.innerHTML = `
       <div class="app-actions">
         <input id="file-input" type="file" accept=".hwp,.hwpx" hidden />
         <button id="open-file" class="button button-secondary" type="button">파일 열기</button>
-        <button id="export-hwpx" class="button button-primary" type="button" disabled>HWPX 저장</button>
+        <label class="save-format-label" for="save-format">저장 형식</label>
+        <select id="save-format" class="save-format" aria-label="저장 형식">
+          <option value="hwpx">HWPX</option>
+          <option value="hwp">HWP</option>
+        </select>
+        <button id="export-document" class="button button-primary" type="button" disabled>저장</button>
       </div>
     </header>
     <section class="workspace" aria-label="문서 작업 영역">
@@ -32,12 +44,15 @@ app.innerHTML = `
 const editorHost = document.querySelector<HTMLDivElement>('#editor')
 const fileInput = document.querySelector<HTMLInputElement>('#file-input')
 const openFileButton = document.querySelector<HTMLButtonElement>('#open-file')
-const exportHwpxButton = document.querySelector<HTMLButtonElement>('#export-hwpx')
+const saveFormatSelect = document.querySelector<HTMLSelectElement>('#save-format')
+const exportDocumentButton = document.querySelector<HTMLButtonElement>('#export-document')
 const statusMessage = document.querySelector<HTMLParagraphElement>('#status-message')
 
-if (!editorHost || !fileInput || !openFileButton || !exportHwpxButton || !statusMessage) {
+if (!editorHost || !fileInput || !openFileButton || !saveFormatSelect || !exportDocumentButton || !statusMessage) {
   throw new Error('편집기를 붙일 영역을 찾지 못했습니다.')
 }
+
+let currentFileName = 'document'
 
 function setStatus(message: string, isError = false) {
   statusMessage?.replaceChildren(message)
@@ -59,19 +74,30 @@ try {
   const editor = await createEditor('#editor', {
     width: '100%',
     height: '100%',
+    ...(import.meta.env.VITE_RHWP_STUDIO_URL
+      ? { studioUrl: import.meta.env.VITE_RHWP_STUDIO_URL }
+      : {}),
   })
   editorHost.setAttribute('aria-busy', 'false')
-  exportHwpxButton.disabled = false
+  exportDocumentButton.disabled = false
 
   openFileButton.addEventListener('click', () => fileInput.click())
   fileInput.addEventListener('change', async () => {
     const [file] = fileInput.files ?? []
     if (!file) return
 
+    const sourceFormat = detectDocumentFormat(file.name)
+    if (!sourceFormat) {
+      setStatus('HWP 또는 HWPX 파일만 열 수 있습니다.', true)
+      return
+    }
+
     try {
       setStatus(`${file.name} 여는 중…`)
       await editor.loadFile(await file.arrayBuffer(), file.name)
-      setStatus(`${file.name}을(를) 열었습니다. 편집 후 HWPX 저장을 누르세요.`)
+      currentFileName = file.name
+      saveFormatSelect.value = sourceFormat
+      setStatus(`${file.name}을(를) 열었습니다. 편집 후 저장을 누르세요.`)
     } catch (error) {
       console.error('Document load failed', error)
       setStatus(`${file.name}을(를) 열지 못했습니다. 지원되는 HWP 또는 HWPX 파일인지 확인해 주세요.`, true)
@@ -80,18 +106,28 @@ try {
     }
   })
 
-  exportHwpxButton.addEventListener('click', async () => {
+  exportDocumentButton.addEventListener('click', async () => {
+    const format = saveFormatSelect.value as DocumentFormat
+    const outputFileName = downloadFileName(currentFileName, format)
+
     try {
-      exportHwpxButton.disabled = true
-      setStatus('HWPX 파일을 만드는 중…')
-      const bytes = await editor.exportHwpx()
-      download(bytes, 'document.hwpx', 'application/hwp+zip')
-      setStatus('HWPX 파일을 다운로드했습니다.')
+      exportDocumentButton.disabled = true
+      setStatus(`${format.toUpperCase()} 파일을 만드는 중…`)
+      const bytes = format === 'hwp' ? await editor.exportHwp() : await editor.exportHwpx()
+      download(bytes, outputFileName, exportMimeType(format))
+      setStatus(`${outputFileName} 파일을 다운로드했습니다.`)
+
+      // 브라우저 다운로드가 시작된 뒤에만 저장 완료를 알린다. 실패해도 내려받은 파일은 유지된다.
+      try {
+        await editor.notifySaved(outputFileName)
+      } catch (error) {
+        console.warn('Saved-state notification was not available', error)
+      }
     } catch (error) {
-      console.error('HWPX export failed', error)
-      setStatus('HWPX 저장에 실패했습니다. 문서를 연 뒤 다시 시도해 주세요.', true)
+      console.error('Document export failed', error)
+      setStatus(`${format.toUpperCase()} 저장에 실패했습니다. 문서를 연 뒤 다시 시도해 주세요.`, true)
     } finally {
-      exportHwpxButton.disabled = false
+      exportDocumentButton.disabled = false
     }
   })
 } catch (error) {
